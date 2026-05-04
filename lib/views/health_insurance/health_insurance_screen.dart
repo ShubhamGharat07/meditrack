@@ -40,6 +40,7 @@ class _HealthInsuranceScreenState extends State<HealthInsuranceScreen> {
   String _selectedDocType = '';
 
   HealthInsuranceModel? _editingPolicy;
+  bool _isSavingPolicy = false;
 
   @override
   void initState() {
@@ -195,7 +196,7 @@ class _HealthInsuranceScreenState extends State<HealthInsuranceScreen> {
   // SAVE POLICY
   // ─────────────────────────────────────
 
-  Future<void> _savePolicy() async {
+  Future<void> _savePolicy([VoidCallback? refreshSheet]) async {
     if (!_formKey.currentState!.validate()) return;
 
     final userId = context.read<AuthProvider>().currentUser?.uid ?? '';
@@ -207,34 +208,44 @@ class _HealthInsuranceScreenState extends State<HealthInsuranceScreen> {
 
     bool success;
 
-    if (_editingPolicy != null) {
-      final updated = _editingPolicy!.copyWith(
-        providerName: _providerController.text.trim(),
-        policyNumber: _policyNumberController.text.trim(),
-        startDate: _startDate,
-        endDate: _endDate,
-        coverageAmount: _coverageController.text.trim(),
-        agentContact: _agentController.text.trim(),
-        coveredMembers: members,
-      );
-      success = await context.read<HealthInsuranceProvider>().updatePolicy(
-        policy: updated,
-        newDocFile: _selectedDoc,
-        newDocType: _selectedDocType.isNotEmpty ? _selectedDocType : null,
-      );
-    } else {
-      success = await context.read<HealthInsuranceProvider>().addPolicy(
-        userId: userId,
-        providerName: _providerController.text.trim(),
-        policyNumber: _policyNumberController.text.trim(),
-        startDate: _startDate,
-        endDate: _endDate,
-        coverageAmount: _coverageController.text.trim(),
-        agentContact: _agentController.text.trim(),
-        coveredMembers: members,
-        docFile: _selectedDoc,
-        docType: _selectedDocType.isNotEmpty ? _selectedDocType : null,
-      );
+    setState(() => _isSavingPolicy = true);
+    refreshSheet?.call();
+
+    try {
+      if (_editingPolicy != null) {
+        final updated = _editingPolicy!.copyWith(
+          providerName: _providerController.text.trim(),
+          policyNumber: _policyNumberController.text.trim(),
+          startDate: _startDate,
+          endDate: _endDate,
+          coverageAmount: _coverageController.text.trim(),
+          agentContact: _agentController.text.trim(),
+          coveredMembers: members,
+        );
+        success = await context.read<HealthInsuranceProvider>().updatePolicy(
+          policy: updated,
+          newDocFile: _selectedDoc,
+          newDocType: _selectedDocType.isNotEmpty ? _selectedDocType : null,
+        );
+      } else {
+        success = await context.read<HealthInsuranceProvider>().addPolicy(
+          userId: userId,
+          providerName: _providerController.text.trim(),
+          policyNumber: _policyNumberController.text.trim(),
+          startDate: _startDate,
+          endDate: _endDate,
+          coverageAmount: _coverageController.text.trim(),
+          agentContact: _agentController.text.trim(),
+          coveredMembers: members,
+          docFile: _selectedDoc,
+          docType: _selectedDocType.isNotEmpty ? _selectedDocType : null,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSavingPolicy = false);
+        refreshSheet?.call();
+      }
     }
 
     if (!mounted) return;
@@ -1020,15 +1031,27 @@ class _HealthInsuranceScreenState extends State<HealthInsuranceScreen> {
 
                   SizedBox(height: r.largeSpace),
 
-                  CustomButton(
-                    text: insurance.isUploading
-                        ? 'Uploading...'
-                        : isEdit
-                        ? 'Update Policy'
-                        : 'Save Policy',
-                    onPressed: _savePolicy,
-                    isLoading: insurance.isLoading || insurance.isUploading,
-                    icon: Icons.save,
+                  Builder(
+                    builder: (_) {
+                      final isSaving =
+                          _isSavingPolicy ||
+                          insurance.isLoading ||
+                          insurance.isUploading;
+                      return CustomButton(
+                        text: isSaving
+                            ? 'Uploading...'
+                            : isEdit
+                            ? 'Update Policy'
+                            : 'Save Policy',
+                        onPressed: isSaving
+                            ? null
+                            : () => _savePolicy(() {
+                                if (context.mounted) setSheetState(() {});
+                              }),
+                        isLoading: isSaving,
+                        icon: Icons.save,
+                      );
+                    },
                   ),
 
                   SizedBox(height: r.largeSpace),

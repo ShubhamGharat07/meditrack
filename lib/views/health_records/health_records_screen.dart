@@ -29,6 +29,7 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
   File? _selectedFile;
   String _selectedFileName = '';
   String _selectedFileType = '';
+  bool _isSavingRecord = false;
 
   final List<String> _categories = [
     'All',
@@ -105,7 +106,7 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
   // SAVE RECORD
   // ─────────────────────────────────────
 
-  Future<void> _saveRecord() async {
+  Future<void> _saveRecord([VoidCallback? refreshSheet]) async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedFile == null) {
@@ -121,14 +122,25 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
     final userId = context.read<AuthProvider>().currentUser?.uid ?? '';
     final category = _selectedCategory == 'All' ? 'Report' : _selectedCategory;
 
-    final success = await context.read<HealthRecordProvider>().addHealthRecord(
-      userId: userId,
-      title: _titleController.text.trim(),
-      category: category,
-      file: _selectedFile!,
-      fileType: _selectedFileType,
-      notes: _notesController.text.trim(),
-    );
+    setState(() => _isSavingRecord = true);
+    refreshSheet?.call();
+
+    bool success = false;
+    try {
+      success = await context.read<HealthRecordProvider>().addHealthRecord(
+        userId: userId,
+        title: _titleController.text.trim(),
+        category: category,
+        file: _selectedFile!,
+        fileType: _selectedFileType,
+        notes: _notesController.text.trim(),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSavingRecord = false);
+        refreshSheet?.call();
+      }
+    }
 
     if (!mounted) return;
 
@@ -672,13 +684,21 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
                   SizedBox(height: r.largeSpace),
 
                   // Save button
-                  CustomButton(
-                    text: records.isUploading
-                        ? 'Uploading...'
-                        : 'Upload & Save',
-                    onPressed: _saveRecord,
-                    isLoading: records.isLoading || records.isUploading,
-                    icon: Icons.cloud_upload,
+                  Builder(
+                    builder: (_) {
+                      final isSaving =
+                          _isSavingRecord || records.isUploading;
+                      return CustomButton(
+                        text: isSaving ? 'Uploading...' : 'Upload & Save',
+                        onPressed: isSaving
+                            ? null
+                            : () => _saveRecord(() {
+                                if (context.mounted) setSheetState(() {});
+                              }),
+                        isLoading: isSaving,
+                        icon: Icons.cloud_upload,
+                      );
+                    },
                   ),
 
                   SizedBox(height: r.largeSpace),

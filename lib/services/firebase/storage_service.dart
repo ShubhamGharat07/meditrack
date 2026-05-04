@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class StorageService {
@@ -34,6 +35,14 @@ class StorageService {
         .child(userId)
         .child('$recordId.$fileType');
     await ref.delete();
+  }
+
+  Future<void> deleteHealthRecordByUrl(String fileUrl) async {
+    try {
+      await _storage.refFromURL(fileUrl).delete();
+    } on FirebaseException catch (e) {
+      if (e.code != 'object-not-found') rethrow;
+    }
   }
 
   // ─────────────────────────────────────

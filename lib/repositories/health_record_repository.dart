@@ -225,7 +225,7 @@ class HealthRecordRepository {
 
       // FileUrl hai to Storage se delete karo
       if (fileUrl.isNotEmpty) {
-        await _storageService.deleteHealthRecord(userId, recordId, fileUrl);
+        await _storageService.deleteHealthRecordByUrl(fileUrl);
       }
 
       // Firestore se delete karo
