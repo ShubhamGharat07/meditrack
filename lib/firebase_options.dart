@@ -26,10 +26,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -59,4 +56,16 @@ class DefaultFirebaseOptions {
     projectId: 'meditrack-5d2ce',
     storageBucket: 'meditrack-5d2ce.firebasestorage.app',
   );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyA6HL4a80p-bsrPEs-V14ejB-tG_5ZW6NA',
+    appId: '1:512415888438:ios:c9ecb075b9759c97435497',
+    messagingSenderId: '512415888438',
+    projectId: 'meditrack-5d2ce',
+    storageBucket: 'meditrack-5d2ce.firebasestorage.app',
+    androidClientId: '512415888438-bm7ht5uhqngdbinrhja6b1us1lvj4a8h.apps.googleusercontent.com',
+    iosClientId: '512415888438-1qisht15f87938ggnuvmo5s01k51tp9j.apps.googleusercontent.com',
+    iosBundleId: 'com.meditrack.meditrack',
+  );
+
 }

@@ -45,5 +45,34 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to take profile pictures and document scans.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs gallery access to upload medical records and profile images.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs microphone access for recording videos.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>http</string>
+		<string>tel</string>
+		<string>mailto</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.512415888438-1qisht15f87938ggnuvmo5s01k51tp9j</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
