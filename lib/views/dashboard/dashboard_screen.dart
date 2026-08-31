@@ -318,7 +318,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         message: 'No medicines for today!',
         icon: Icons.medication_outlined,
         buttonText: 'Add Medicine',
-        onButtonTap: () => context.go(AppRoutes.addMedicine),
+        onButtonTap: () => context.push(AppRoutes.addMedicine),
       );
     }
 

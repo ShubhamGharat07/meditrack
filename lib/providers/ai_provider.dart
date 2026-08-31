@@ -81,11 +81,13 @@ class AIProvider extends ChangeNotifier {
         ChatMessage(message: response, isUser: false, time: DateTime.now()),
       );
     } on ServerFailure catch (e) {
-      _errorMessage = e.message;
+      final wasCancelled = e.message == AIViewModel.requestCancelledMessage;
+      _errorMessage = wasCancelled ? '' : e.message;
       _messages.add(
         ChatMessage(
-          message:
-              'Sorry, I am unable to process your request. Please try again!',
+          message: wasCancelled
+              ? 'Response stopped.'
+              : _userFacingError(e.message),
           isUser: false,
           time: DateTime.now(),
         ),
@@ -271,6 +273,11 @@ class AIProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void cancelRequest() {
+    if (!_isLoading) return;
+    _aiViewModel.cancelActiveRequest();
+  }
+
   // ─────────────────────────────────────
   // HELPERS
   // ─────────────────────────────────────
@@ -281,5 +288,27 @@ class AIProvider extends ChangeNotifier {
 
   void _clearError() {
     _errorMessage = '';
+  }
+
+  String _userFacingError(String error) {
+    final normalized = error.toLowerCase();
+
+    if (normalized.contains('api key') ||
+        normalized.contains('permission') ||
+        normalized.contains('denied') ||
+        normalized.contains('forbidden') ||
+        normalized.contains('403')) {
+      return 'AI service access is currently blocked. Please check the Gemini API key and Google Cloud project access.';
+    }
+
+    if (normalized.contains('rate') || normalized.contains('quota')) {
+      return 'AI service quota is currently limited. Please try again later.';
+    }
+
+    if (normalized.contains('network') || normalized.contains('timeout')) {
+      return 'I could not reach the AI service. Please check your internet connection and try again.';
+    }
+
+    return 'Sorry, I am unable to process your request. Please try again!';
   }
 }

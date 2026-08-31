@@ -1011,7 +1011,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         size: r.wp(3.5),
                         color: const Color(0xFF9E9EAA),
                       ),
-                      onTap: () {},
+                      onTap: () => context.push(AppRoutes.privacyPolicy),
                     ),
                     Divider(
                       height: 1,
@@ -1028,7 +1028,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         size: r.wp(3.5),
                         color: const Color(0xFF9E9EAA),
                       ),
-                      onTap: () {},
+                      onTap: () => context.push(AppRoutes.termsOfService),
                     ),
                   ],
                 ),

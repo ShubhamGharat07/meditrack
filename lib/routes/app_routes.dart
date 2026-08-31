@@ -156,6 +156,7 @@ import '../views/family/add_edit_family_member_screen.dart';
 import '../views/analytics/analytics_screen.dart';
 import '../views/emergency/emergency_screen.dart';
 import '../views/profile/profile_screen.dart';
+import '../views/settings/legal_document_screen.dart';
 import '../views/settings/settings_screen.dart';
 import '../widgets/common/bottom_nav_bar.dart';
 
@@ -172,6 +173,8 @@ class AppRoutes {
   static const String aiAssistant = '/ai-assistant';
   static const String profile = '/profile';
   static const String settings = '/profile/settings';
+  static const String privacyPolicy = '/profile/settings/privacy-policy';
+  static const String termsOfService = '/profile/settings/terms-of-service';
   static const String editProfile = '/profile/edit';
   static const String doctors = '/doctors';
   static const String family = '/family';
@@ -234,6 +237,18 @@ class AppRoutes {
                 GoRoute(
                   path: 'settings',
                   builder: (_, __) => const SettingsScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'privacy-policy',
+                      builder: (_, __) =>
+                          LegalDocumentScreen.privacyPolicy(),
+                    ),
+                    GoRoute(
+                      path: 'terms-of-service',
+                      builder: (_, __) =>
+                          LegalDocumentScreen.termsOfService(),
+                    ),
+                  ],
                 ),
                 GoRoute(
                   path: 'edit',

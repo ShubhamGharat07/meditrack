@@ -4,14 +4,18 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../core/errors/failures.dart';
 
 class AIViewModel {
+  static const requestCancelledMessage = 'AI request cancelled.';
+
   final List<Map<String, dynamic>> _chatHistory = [];
   bool _isInitialized = false;
+  bool _isCancelled = false;
+  http.Client? _activeClient;
 
   // Models to try in order — if one fails, try the next
   final List<String> _models = [
-    'gemini-2.5-flash',
-    'gemini-2.0-flash',
-    'gemini-2.0-flash-lite',
+    'gemini-3.7-flash',
+    'gemini-3.6-flash',
+    'gemini-3.5-flash-lite',
   ];
 
   // Base system instruction (always present)
@@ -44,6 +48,7 @@ class AIViewModel {
   // ─────────────────────────────────────
   Future<String> sendMessage(String message, {String? context}) async {
     try {
+      _isCancelled = false;
       if (message.isEmpty) {
         throw ServerFailure('Message is required!');
       }
@@ -114,17 +119,27 @@ class AIViewModel {
 
       // Try each model in order
       String? lastError;
+      final client = http.Client();
+      _activeClient = client;
       for (final model in _models) {
+        if (_isCancelled) {
+          throw ServerFailure(requestCancelledMessage);
+        }
+
         final url = Uri.parse(
-          'https://generativelanguage.googleapis.com/v1/models/$model:generateContent?key=$apiKey',
+          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
         );
 
         try {
-          final response = await http.post(
+          final response = await client.post(
             url,
             headers: {'Content-Type': 'application/json'},
             body: body,
-          );
+          ).timeout(const Duration(seconds: 30));
+
+          if (_isCancelled) {
+            throw ServerFailure(requestCancelledMessage);
+          }
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -157,9 +172,7 @@ class AIViewModel {
             lastError = error['error']?['message'] ?? 'Model not found!';
             continue;
           } else {
-            final error = jsonDecode(response.body);
-            final errorMessage =
-                error['error']?['message'] ?? 'Unknown error!';
+            final errorMessage = _extractApiError(response.body);
             if (response.statusCode == 403) {
               lastError = errorMessage;
               continue;
@@ -168,6 +181,9 @@ class AIViewModel {
           }
         } catch (e) {
           if (e is ServerFailure) rethrow;
+          if (_isCancelled) {
+            throw ServerFailure(requestCancelledMessage);
+          }
           lastError = 'Network error: $e';
           continue;
         }
@@ -185,6 +201,10 @@ class AIViewModel {
       rethrow;
     } catch (e) {
       throw ServerFailure('AI Error: ${e.toString()}');
+    } finally {
+      _activeClient?.close();
+      _activeClient = null;
+      _isCancelled = false;
     }
   }
 
@@ -192,8 +212,14 @@ class AIViewModel {
   // CLEAR CHAT
   // ─────────────────────────────────────
   void clearChat() {
+    cancelActiveRequest();
     _chatHistory.clear();
     _isInitialized = false;
+  }
+
+  void cancelActiveRequest() {
+    _isCancelled = true;
+    _activeClient?.close();
   }
 
   // ─────────────────────────────────────
@@ -204,5 +230,14 @@ class AIViewModel {
     return '${now.day.toString().padLeft(2, '0')}/'
         '${now.month.toString().padLeft(2, '0')}/'
         '${now.year}';
+  }
+
+  String _extractApiError(String body) {
+    try {
+      final error = jsonDecode(body);
+      return error['error']?['message'] ?? 'Unknown Gemini API error!';
+    } catch (_) {
+      return body.isNotEmpty ? body : 'Unknown Gemini API error!';
+    }
   }
 }
