@@ -1,8 +1,8 @@
 # MediTrack 🏥
 
 <p align="center">
-  <a href="https://github.com/ShubhamGharat07/meditrack/releases/download/v1.0.0/app-release.apk">
-    <img src="https://img.shields.io/badge/⬇️%20Download%20APK-v1.0.0-1565C0?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" height="50"/>
+  <a href="https://github.com/ShubhamGharat07/meditrack/releases/download/v1.0.1/app-release.apk">
+    <img src="https://img.shields.io/badge/⬇️%20Download%20APK-v1.0.1-1565C0?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" height="50"/>
   </a>
 </p>
 
@@ -53,27 +53,3 @@ MediTrack is a Flutter-based personal health management app that helps you track
 ```bash
 git clone https://github.com/ShubhamGharat07/meditrack.git
 cd meditrack
-```
-
-**2. Install dependencies**
-```bash
-flutter pub get
-```
-
-**3. Create `.env` file in root**
-```
-GEMINI_API_KEY=your_gemini_api_key
-GOOGLE_WEB_CLIENT_ID=your_google_web_client_id
-```
-
-**4. Add Firebase config**
-- Download `google-services.json` → place in `android/app/`
-- Update `lib/firebase_options.dart` with your Firebase project config
-
-**5. Run the app**
-```bash
-flutter run
-```
-
----
-
